@@ -1,5 +1,8 @@
 <?php
 require '../auth/validate.php';
+require 'energyconfig.php';
+
+$energyConfig = readEnergyConfig();
 
 function myLogRequest() {
 	$fileName = "energy.log";
@@ -30,13 +33,15 @@ if( ! isset($_SERVER['HTTP_AUTHORIZATION']) ) {
 			echo "Invalid token\n";
 			http_response_code(403);
 		} else {
-			$statusList = json_encode([
-					["validtoken" => $isTokenValid],
-					["timestamp" => 2132131, "status" => "OK"],
-					["timestamp" => 2132132, "status" => "OK"],
-					["timestamp" => 2132133, "status" => "OK"]
-				], JSON_PRETTY_PRINT);
-			echo $statusList;
+			if ( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
+				$statusList = json_encode([
+						["validtoken" => $isTokenValid],
+						["db.host" => getDbHost($energyConfig)],
+						["db.user" => getDbUser($energyConfig)],
+						["db.name" => getDbName($energyConfig)]
+					], JSON_PRETTY_PRINT);
+				echo $statusList;
+			}
 		}
 	}
 }

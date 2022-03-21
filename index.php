@@ -29,13 +29,11 @@ if( ! isset($_SERVER['HTTP_AUTHORIZATION']) ) {
 		http_response_code(403);
 	} else {
 		if ( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
-			$isTokenValid = validateToken("read:p1", $authParts[1]);
-			if( ! $isTokenValid ) {
+			if ( ! validateToken("read:p1", $authParts[1]) ) {
 				echo "Invalid token\n";
 				http_response_code(403);
 			} else {
 				$statusList = json_encode([
-						["validtoken" => $isTokenValid],
 						["db.host" => getDbHost($energyConfig)],
 						["db.user" => getDbUser($energyConfig)],
 						["db.name" => getDbName($energyConfig)]
@@ -43,8 +41,7 @@ if( ! isset($_SERVER['HTTP_AUTHORIZATION']) ) {
 				echo $statusList;
 			}
 		} else if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
-			$isTokenValid = validateToken("write:p1", $authParts[1]);
-			if( ! $isTokenValid ) {
+			if ( ! validateToken("write:p1", $authParts[1]) ) {
 				echo "Invalid token\n";
 				http_response_code(403);
 			} else {

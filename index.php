@@ -51,7 +51,9 @@ if( ! isset($_SERVER['HTTP_AUTHORIZATION']) ) {
 				$datetime = $_REQUEST['datetime'];
 				echo "current: ${current}\n";
 				echo "datetime: ${datetime}\n";
-				$query = "insert into current_max (current, datetime) values (${current}, '${datetime}');select min(current) from current_max; select max(current) from current_max;select * from current_max;";
+				$query = "insert into current_max (current, datetime) values (${current}, '${datetime}');";
+				$query .= "delete from current_max where current < (select max(current) from current_max);";
+				$query .= "delete from current_max where datetime < (select max(datetime) from current_max);";
 				if ( mysqli_multi_query($link, $query) ) {
 					echo "First query OK\n";
 					do {

@@ -28,12 +28,12 @@ if( ! isset($_SERVER['HTTP_AUTHORIZATION']) ) {
 		echo "Need bearer token authorization\n";
 		http_response_code(403);
 	} else {
-		$isTokenValid = validateToken("write:p1", $authParts[1]);
-		if( ! $isTokenValid ) {
-			echo "Invalid token\n";
-			http_response_code(403);
-		} else {
-			if ( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
+		if ( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
+			$isTokenValid = validateToken("read:p1", $authParts[1]);
+			if( ! $isTokenValid ) {
+				echo "Invalid token\n";
+				http_response_code(403);
+			} else {
 				$statusList = json_encode([
 						["validtoken" => $isTokenValid],
 						["db.host" => getDbHost($energyConfig)],
@@ -41,6 +41,14 @@ if( ! isset($_SERVER['HTTP_AUTHORIZATION']) ) {
 						["db.name" => getDbName($energyConfig)]
 					], JSON_PRETTY_PRINT);
 				echo $statusList;
+			}
+		} else if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
+			$isTokenValid = validateToken("write:p1", $authParts[1]);
+			if( ! $isTokenValid ) {
+				echo "Invalid token\n";
+				http_response_code(403);
+			} else {
+				echo "POST";
 			}
 		}
 	}

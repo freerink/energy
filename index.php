@@ -28,19 +28,45 @@ if( ! isset($_SERVER['HTTP_AUTHORIZATION']) ) {
 		echo "Need bearer token authorization\n";
 		http_response_code(403);
 	} else {
-		$isTokenValid = validateToken("write:p1", $authParts[1]);
-		if( ! $isTokenValid ) {
-			echo "Invalid token\n";
-			http_response_code(403);
-		} else {
-			if ( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
+		if ( $_SERVER['REQUEST_METHOD'] == 'GET' ) {
+			if ( ! validateToken("read:p1", $authParts[1]) ) {
+				echo "Invalid token\n";
+				http_response_code(403);
+			} else {
 				$statusList = json_encode([
-						["validtoken" => $isTokenValid],
 						["db.host" => getDbHost($energyConfig)],
 						["db.user" => getDbUser($energyConfig)],
 						["db.name" => getDbName($energyConfig)]
 					], JSON_PRETTY_PRINT);
 				echo $statusList;
+			}
+		} else if ( $_SERVER['REQUEST_METHOD'] == 'POST' ) {
+			if ( ! validateToken("write:p1", $authParts[1]) ) {
+				echo "Invalid token\n";
+				http_response_code(403);
+			} else {
+				echo "DB connect\n";
+				$link = mysqli_connect(getDbHost($energyConfig), getDbUser($energyConfig), getDbPassword($energyConfig), getDbName($energyConfig)) or die ('Could not connect to database: ' . mysql_error());
+				$current = $_REQUEST['data'][0]['actualCurrentL1']['value'];
+				$datetime = $_REQUEST['data'][0]['dateTime'];
+				echo "current: ${current}\n";
+				echo "datetime: ${datetime}\n";
+				$query = "insert into current_max (current, datetime) values (${current}, '${datetime}');";
+				$query .= "delete from current_max where current < (select max(current) from current_max);";
+				$query .= "delete from current_max where datetime < (select max(datetime) from current_max);";
+				if ( mysqli_multi_query($link, $query) ) {
+					echo "First query OK\n";
+					do {
+						if ( $result = mysqli_store_result($link) ) {
+							while( $row = mysqli_fetch_row($result) ) {
+								echo "ROW: ";
+								print_r($row);
+							}
+						}
+					} while ( mysqli_more_results($link) && mysqli_next_result($link) );
+				} else {
+					echo "First query failed\n";
+				}
 			}
 		}
 	}

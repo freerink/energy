@@ -47,8 +47,8 @@ if( ! isset($_SERVER['HTTP_AUTHORIZATION']) ) {
 			} else {
 				echo "DB connect\n";
 				$link = mysqli_connect(getDbHost($energyConfig), getDbUser($energyConfig), getDbPassword($energyConfig), getDbName($energyConfig)) or die ('Could not connect to database: ' . mysql_error());
-				$current = $_REQUEST['current'];
-				$datetime = $_REQUEST['datetime'];
+				$current = $_REQUEST['data'][0]['actualCurrentL1']['value'];
+				$datetime = $_REQUEST['data'][0]['dateTime'];
 				echo "current: ${current}\n";
 				echo "datetime: ${datetime}\n";
 				$query = "insert into current_max (current, datetime) values (${current}, '${datetime}');";
